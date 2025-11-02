@@ -10,8 +10,8 @@ except ImportError:
 load_dotenv()
 
 # === User-friendly IST schedule (set in workflow or .env) ===
-IST_DAY  = os.getenv("IST_DAY",  "02")     # e.g., "12"
-IST_TIME = os.getenv("IST_TIME", "20:58")  # e.g., "10:00" (24h)
+IST_DAY  = os.getenv("IST_DAY",  "12")     # e.g., "12"
+IST_TIME = os.getenv("IST_TIME", "10:00")  # e.g., "10:00" (24h)
 TZ_NAME  = os.getenv("TIMEZONE", "Asia/Kolkata")
 
 # Whapi auth + target
