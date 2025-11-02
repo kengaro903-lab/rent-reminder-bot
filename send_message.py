@@ -11,7 +11,7 @@ load_dotenv()
 
 # === User-friendly IST schedule (set in workflow or .env) ===
 IST_DAY  = os.getenv("IST_DAY",  "02")     # e.g., "12"
-IST_TIME = os.getenv("IST_TIME", "21:30")  # e.g., "10:00" (24h)
+IST_TIME = os.getenv("IST_TIME", "22:50")  # e.g., "10:00" (24h)
 TZ_NAME  = os.getenv("TIMEZONE", "Asia/Kolkata")
 
 # Whapi auth + target
