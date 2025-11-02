@@ -22,8 +22,8 @@ jobs:
       - name: Run script (IST-aware)
         env:
           WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
-          GROUP_ID:    ${{ secrets.GROUP_ID }}
-          MENTION_WAID:${{ secrets.MENTION_WAID }}
+          GROUP_ID:    ${{ 120363422182789777@g.us}}
+          MENTION_WAID:${{ 918483826996 }}
           IST_DAY:  "02"       # <-- set desired IST day here, e.g. "12"
           IST_TIME: "21:30"    # <-- set desired IST time (24h), e.g. "10:00"
           TIMEZONE: "Asia/Kolkata"
