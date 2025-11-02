@@ -1,22 +1,27 @@
-import os, sys, time, json, requests
+import os, sys, time, requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
 try:
     from dotenv import load_dotenv
 except ImportError:
-    print("[setup] Installing python-dotenv is recommended: pip install python-dotenv")
     def load_dotenv(*args, **kwargs): pass
 
 load_dotenv()
 
-TOKEN        = os.getenv("WHAPI_TOKEN", "").strip()
+# === User-friendly IST schedule (set in workflow or .env) ===
+IST_DAY  = os.getenv("IST_DAY",  "02")     # e.g., "12"
+IST_TIME = os.getenv("IST_TIME", "20:58")  # e.g., "10:00" (24h)
+TZ_NAME  = os.getenv("TIMEZONE", "Asia/Kolkata")
+
+# Whapi auth + target
+WHAPI_TOKEN  = os.getenv("WHAPI_TOKEN", "").strip()
 GROUP_ID     = os.getenv("GROUP_ID", "").strip()
-WA_ID        = os.getenv("MENTION_WAID", "").strip()
-DISPLAY_NAME = os.getenv("DISPLAY_NAME", "Resident").strip()
-MESSAGE      = os.getenv("MESSAGE", "📩 Rent check").strip()
-SEND_AT      = os.getenv("SEND_AT", "").strip()
-TZ_NAME      = os.getenv("TIMEZONE", "Asia/Kolkata").strip()
+MENTION_WAID = os.getenv("MENTION_WAID", "").strip()
+
+# Message pieces
+DISPLAY_NAME = os.getenv("DISPLAY_NAME", "Sanket").strip()
+MESSAGE      = os.getenv("MESSAGE", "📩 Rent check: Have you received the *Raintree* flat rent this month?").strip()
 
 API_BASE = "https://gate.whapi.cloud"
 
@@ -26,52 +31,33 @@ def fail(msg: str):
 
 def validate():
     missing = [k for k,v in {
-        "WHAPI_TOKEN": TOKEN,
+        "WHAPI_TOKEN": WHAPI_TOKEN,
         "GROUP_ID": GROUP_ID,
-        "MENTION_WAID": WA_ID,
+        "MENTION_WAID": MENTION_WAID,
     }.items() if not v]
     if missing:
-        fail(f"Missing env vars: {', '.join(missing)}. Edit your .env.")
-
+        fail(f"Missing env vars: {', '.join(missing)}")
     if not GROUP_ID.endswith("@g.us"):
         fail("GROUP_ID must end with @g.us (e.g., 1203…@g.us).")
-
-    if not WA_ID.isdigit():
+    if not MENTION_WAID.isdigit():
         fail("MENTION_WAID must be digits only (international format, no '+').")
 
-def wait_until_if_needed():
-    if not SEND_AT:
-        return
+def ist_gate():
+    """Exit unless current IST day+time match IST_DAY/IST_TIME exactly."""
     try:
         tz = ZoneInfo(TZ_NAME)
     except Exception:
         fail(f"Invalid TIMEZONE: {TZ_NAME}")
-    try:
-        target = datetime.strptime(SEND_AT, "%Y-%m-%d %H:%M").replace(tzinfo=tz)
-    except ValueError:
-        fail("SEND_AT must be in 'YYYY-MM-DD HH:MM' 24h format (IST). Example: 2025-11-01 10:00")
-
     now = datetime.now(tz)
-    delta = (target - now).total_seconds()
-    if delta <= 0:
-        print(f"[info] SEND_AT {target} is in the past; sending now.")
-        return
-    # Sleep in short chunks so Ctrl+C remains responsive
-    print(f"[info] Waiting until {target} ({TZ_NAME}) to send…")
-    while delta > 0:
-        to_wait = min(60, delta)  # up to 60s chunks
-        time.sleep(to_wait)
-        now = datetime.now(tz)
-        delta = (target - now).total_seconds()
-        # Optional: show countdown every minute
-        if int(delta) % 300 < 2:  # roughly every ~5 minutes
-            print(f"[info] ~{int(delta)//60} min remaining…")
+    if now.strftime("%d") != str(IST_DAY).zfill(2) or now.strftime("%H:%M") != IST_TIME:
+        print(f"[skip] Not scheduled time. Now IST={now.strftime('%d %H:%M')} target={str(IST_DAY).zfill(2)} {IST_TIME}")
+        sys.exit(0)
 
 def send_text():
     url = f"{API_BASE}/messages/text"
-    headers = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {WHAPI_TOKEN}", "Content-Type": "application/json"}
     body_text = f"{MESSAGE} @{DISPLAY_NAME}"
-    payload = {"to": GROUP_ID, "body": body_text, "mentions": [WA_ID]}
+    payload = {"to": GROUP_ID, "body": body_text, "mentions": [MENTION_WAID]}
     r = requests.post(url, headers=headers, json=payload, timeout=30)
     print(f"[http] {r.status_code} {r.text}")
     if r.status_code != 200:
@@ -80,14 +66,13 @@ def send_text():
         resp = r.json()
     except Exception:
         fail("Non-JSON response from API.")
-    msg_id = ((((resp or {}).get("message")) or {}).get("id")) or None
-    return msg_id
+    return (((resp or {}).get("message")) or {}).get("id")
 
 def get_status(msg_id: str):
     if not msg_id:
         return
     url = f"{API_BASE}/messages/{msg_id}"
-    r = requests.get(url, headers={"Authorization": f"Bearer {TOKEN}"}, timeout=15)
+    r = requests.get(url, headers={"Authorization": f"Bearer {WHAPI_TOKEN}"}, timeout=15)
     if r.status_code != 200:
         print(f"[warn] Status check failed: {r.status_code} {r.text}")
         return
@@ -102,9 +87,9 @@ def get_status(msg_id: str):
 
 def main():
     validate()
-    wait_until_if_needed()
+    ist_gate()           # Only send at the exact IST day+time
     msg_id = send_text()
-    # Optional quick poll (few seconds) to show delivery state
+    # quick poll for a few seconds
     for _ in range(6):
         st = get_status(msg_id)
         if st in ("sent", "delivered", "read"):
