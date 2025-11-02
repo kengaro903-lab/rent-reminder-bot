@@ -1,1 +1,30 @@
+name: Monthly Rent Reminder (IST-friendly)
 
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # run every 5 minutes (UTC); script gates by IST day/time
+  workflow_dispatch:
+
+jobs:
+  send_rent_message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Run script (IST-aware)
+        env:
+          WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
+          GROUP_ID:    ${{ secrets.GROUP_ID }}
+          MENTION_WAID:${{ secrets.MENTION_WAID }}
+          IST_DAY:  "02"       # <-- set desired IST day here, e.g. "12"
+          IST_TIME: "21:30"    # <-- set desired IST time (24h), e.g. "10:00"
+          TIMEZONE: "Asia/Kolkata"
+        run: python send_message.py
