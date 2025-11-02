@@ -1,9 +1,10 @@
-name: Monthly Rent Reminder (IST-friendly)
+name: Monthly Rent Reminder (IST 22:50 on 2nd)
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # run every 5 minutes; script sends only at your IST time/day
-  workflow_dispatch:
+    # 22:50 IST = 17:20 UTC (IST is UTC+5:30)
+    - cron: "20 17 2 * *"    # run at 17:20 UTC on the 2nd of every month
+  workflow_dispatch:          # allows manual trigger too
 
 jobs:
   send_rent_message:
@@ -16,15 +17,17 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install deps
-        run: pip install requests
+      - name: Install dependencies
+        run: pip install requests python-dotenv
 
-      - name: Run script (IST-aware)
+      - name: Send WhatsApp rent reminder
         env:
           WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
           GROUP_ID:    ${{ secrets.GROUP_ID }}
           MENTION_WAID: ${{ secrets.MENTION_WAID }}
-          IST_DAY:  "02"       # <-- set your IST day here (01..31)
-          IST_TIME: "22:21"    # <-- set your IST time here (24h)
-          TIMEZONE: "Asia/Kolkata"
+          DISPLAY_NAME: ${{ secrets.DISPLAY_NAME }}
+          MESSAGE:     ${{ secrets.MESSAGE }}
+          TIMEZONE:    "Asia/Kolkata"
+          IST_DAY:     "02"
+          IST_TIME:    "22:50"
         run: python send_message.py
