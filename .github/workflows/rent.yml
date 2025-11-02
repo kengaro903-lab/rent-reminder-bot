@@ -29,5 +29,5 @@ jobs:
           MESSAGE:     ${{ secrets.MESSAGE }}
           TIMEZONE:    "Asia/Kolkata"
           IST_DAY:     "02"
-          IST_TIME:    "22:50"
+          IST_TIME:    "23:25"
         run: python send_message.py
