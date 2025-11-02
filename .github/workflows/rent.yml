@@ -21,7 +21,7 @@ jobs:
 
       - name: Run script (IST-aware)
         env:
-          WHAPI_TOKEN: ${{ 120363422182789777@g.us }}
+          WHAPI_TOKEN: ${{120363422182789777@g.us}}
           GROUP_ID: ${{ SIIpBqiRNXTv1uZFc5pQpGfPtJjEdmIE }}
           MENTION_WAID: ${{ 918483826996 }}
           IST_DAY: "02"        # set your IST day, e.g. "12"
