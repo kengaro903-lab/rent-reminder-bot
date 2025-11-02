@@ -21,10 +21,10 @@ jobs:
 
       - name: Run script (IST-aware)
         env:
-          WHAPI_TOKEN: 120363422182789777@g.us
-          GROUP_ID: SIIpBqiRNXTv1uZFc5pQpGfPtJjEdmIE
-          MENTION_WAID: 918483826996
-          IST_DAY: "02"        # set your IST day, e.g. "12"
-          IST_TIME: "22:45"    # set your IST time, e.g. "10:00"
+          WHAPI_TOKEN: ${{ secrets.WHAPI_TOKEN }}
+          GROUP_ID:    ${{ secrets.GROUP_ID }}
+          MENTION_WAID: ${{ secrets.MENTION_WAID }}
+          IST_DAY:  "02"       # <-- set your IST day here (01..31)
+          IST_TIME: "23:00"    # <-- set your IST time here (24h)
           TIMEZONE: "Asia/Kolkata"
         run: python send_message.py
