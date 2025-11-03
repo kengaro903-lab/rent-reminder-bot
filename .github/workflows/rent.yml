@@ -1,10 +1,13 @@
-name: Monthly Rent Reminder (IST-based, 5-minute safe window)
+name: Monthly Rent Reminder (IST-based + Manual Test)
 
 on:
+  # 🔹 Allows you to run manually from GitHub → Actions → Run workflow
+  workflow_dispatch:
+
+  # 🔹 Automatically runs every month (IST converted to UTC)
+  # 13:10 IST = 07:40 UTC
   schedule:
-    # Run every 5 minutes (UTC). The Python script will decide if it's the right IST time.
-    - cron: "*/5 * * * *"
-  workflow_dispatch:  # Allow manual run anytime
+    - cron: "40 7 3 * *"  # 3rd of every month, 13:10 IST
 
 jobs:
   send_rent_message:
@@ -23,15 +26,13 @@ jobs:
 
       - name: Send WhatsApp rent reminder (IST-aware)
         env:
-          # These are pulled from GitHub Secrets for security
+          # --- Required Whapi credentials (from GitHub Secrets) ---
           WHAPI_TOKEN:  ${{ secrets.WHAPI_TOKEN }}
           GROUP_ID:     ${{ secrets.GROUP_ID }}
-          MENTION_WAID: ${{ secrets.MENTION_WAID }}
-          DISPLAY_NAME: ${{ secrets.DISPLAY_NAME }}
           MESSAGE:      ${{ secrets.MESSAGE }}
 
-          # Local configuration (IST-friendly)
+          # --- Time zone configuration ---
           TIMEZONE: "Asia/Kolkata"
-          IST_DAY:  "03"        # Change this to your desired day (e.g., "02" for 2nd)
-          IST_TIME: "13:50"     # Change this to your desired time (24h IST, e.g., "22:50")
+          IST_DAY:  "03"        # Change to your preferred date
+          IST_TIME: "13:50"     # Change to your preferred IST time
         run: python send_message.py
