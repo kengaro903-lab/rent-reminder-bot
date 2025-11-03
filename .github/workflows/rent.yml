@@ -27,6 +27,6 @@ jobs:
           DISPLAY_NAME: ${{ secrets.DISPLAY_NAME }}
           MESSAGE: ${{ secrets.MESSAGE }}
           TIMEZONE: "Asia/Kolkata"
-          IST_DAY: "02"        # You can easily change here (e.g., 05 for 5th)
-          IST_TIME: "22:50"    # 24h IST time, no UTC math needed
+          IST_DAY: "03"        # You can easily change here (e.g., 05 for 5th)
+          IST_TIME: "13:10"    # 24h IST time, no UTC math needed
         run: python send_message.py
