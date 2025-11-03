@@ -11,7 +11,7 @@ except ImportError:
 
 # === Schedule (IST-based) ===
 IST_DAY  = os.getenv("IST_DAY",  "03")       # Day of the month (e.g., "03")
-IST_TIME = os.getenv("IST_TIME", "13:10")    # Target time in IST (24h)
+IST_TIME = os.getenv("IST_TIME", "13:50")    # Target time in IST (24h)
 TZ_NAME  = os.getenv("TIMEZONE", "Asia/Kolkata")
 
 # === Whapi Config ===
